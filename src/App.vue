@@ -1,9 +1,14 @@
 <template>
+  <!-- <transition>
+    <keep-alive>
+      <router-view/>
+    </keep-alive>
+  </transition> -->
   <Home/>
 </template>
 
 <script>
-import Home from './components/Home.vue'
+import Home from './views/Home.vue'
 
 export default {
   name: 'App',
