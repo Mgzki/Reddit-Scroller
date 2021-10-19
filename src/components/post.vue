@@ -6,16 +6,14 @@
       </div>
 
       <!-- Content Display -->
-      <container>
         <!-- Non Text Content -->
         <div v-if="!isSelfText" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
           <a :href="mediaLink"><img :src="preview" class="flex-1 h-full"></a>
         </div>
         <!-- Text Content -->
-        <div v-else class="overflow-y-scroll" style="height:24rem">
-          <p class="text-sm">{{selfText}}</p>
+        <div v-else class="overflow-y-scroll text-left px-1 " style="height:24rem">
+          <p class="text-sm my-auto">{{selfText}}</p>
         </div>
-      </container>
       
       <!-- Author in Subreddit -->
       <p class="text-sm align-center bg-gray-200 h-8 rounded-b-lg pt-1">
