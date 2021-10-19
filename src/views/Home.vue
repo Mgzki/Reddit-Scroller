@@ -25,6 +25,9 @@
         </div>
       </div>
   </div>
+  <footer>
+    <button @click="loadMore"> More </button>
+  </footer>
 </template>
 
 <script>
@@ -36,12 +39,23 @@ export default {
   data () {
     return {
       posts: [],
+      load: [],
     }
   },
   methods: {
     async fetchData () {
       try {
-        const response = await fetch('https://www.reddit.com/r/wallpapers/.json');
+        const response = await fetch('https://www.reddit.com/r/wallpapers.json?limit=40');
+        this.posts = await response.json().then(function(json) {
+          return json.data.children
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async loadMore() {
+      try{
+        const response = await fetch('https://www.reddit.com/r/wallpapers.json');
         this.posts = await response.json().then(function(json) {
           return json.data.children
         });
@@ -55,4 +69,27 @@ export default {
   }
 }
 </script>
+
+<style>
+  ::-webkit-scrollbar {
+    width: 3px;
+  }
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: var(--darkestgray); 
+    
+    border-radius: 1px;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #333;
+    
+    border-radius: 1px;
+  }
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: none; 
+  }
+</style> 
 
