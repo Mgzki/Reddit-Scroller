@@ -87,17 +87,17 @@ export default {
       this.video = this.isVideo;
       this.preview = this.getPreview;
     },
-    nextGalleryImage: function () {
+    nextGalleryImage() {
       if (this.imageIndex < this.gallery.length - 1) {
         this.imageIndex++;
       }
     },
-    prevGalleryImage: function () {
+    prevGalleryImage() {
       if (this.imageIndex > 0) {
         this.imageIndex--;
       }
     },
-    loadVideo: function () {
+    loadVideo() {
       this.test = this.content;
       this.isClickedToLoad = !this.isClickedToLoad
     }
@@ -151,7 +151,7 @@ export default {
       }
       else if (Object.prototype.hasOwnProperty.call(this.post,'post_hint')) {
         type = this.post.post_hint
-        if (type === 'link') {
+        if (type === 'link' | type === 'hosted:video') {
           // Video
           // Embedded Twitch
           if (this.post.domain === "clips.twitch.tv") {
@@ -165,6 +165,7 @@ export default {
           if (Object.prototype.hasOwnProperty.call(this.post, 'media')){
             //Linked Video
             if (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video')){
+              console.log(this.post.title)
               return [this.post.media.reddit_video.fallback_url,'video'];
             }
           }
@@ -211,7 +212,7 @@ export default {
     },
 
     isVideo: function() {
-      let videoTypes = ['rich:video', 'video'];
+      let videoTypes = ['rich:video', 'video', 'hosted:video'];
       for (let type in videoTypes) {
         if (videoTypes[type] === this.contentType) return true;
       } return false
