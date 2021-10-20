@@ -11,7 +11,7 @@
       </div>
 
       <!-- Search -->
-      <input v-model="urlTail" v-on:keyup.enter="updateUrl" type="text" class="px-2 py-2 sm:py-4 col-start-3 sm:col-start-2 col-span-8 sm:col-span-10 bg-opacity-0 rounded-md shadow-lg" placeholder="r/">
+      <input v-model="urlTail" v-on:keyup.enter="updateUrl" type="text" class="px-2 py-2 sm:py-4 col-start-3 sm:col-start-2 col-span-8 sm:col-span-10 opacity-50 focus:opacity-100 rounded-md shadow-lg" placeholder="r/">
     </nav>
   </section>
 
@@ -50,7 +50,7 @@ export default {
     async fetchData () {
       let url = this.buildUrl()
       try {
-        const response = await fetch(this.buildUrl(false));
+        const response = await fetch(url);
         this.posts = await response.json().then(function(json) {
           return json.data.children
         });
@@ -60,8 +60,9 @@ export default {
     },
     async loadMore() {
       let after = this.posts[this.posts.length - 1].data.id
+      let url = this.buildAfterUrl()
       try{
-        const response = await fetch(this.buildAfterUrl() + after);
+        const response = await fetch(url + after);
         this.load = await response.json().then(function(json) {
           return json.data.children
         }); 
