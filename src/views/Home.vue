@@ -18,7 +18,7 @@
   <!-- Body -->
   <div class="bg-gray-400 overflow-y-scroll" style="height: 91vh">
     <div class="flex max-w-screen-2xl justify-center mx-auto px-2 ">
-        <div class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-9 lg:grid-cols-12 xl:grid-cols-10 grid-flow-row gap-2 pt-6 overflow-y-scroll">
+        <div class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-9 lg:grid-cols-12 xl:grid-cols-10 grid-flow-row gap-2 pt-6 ">
           <template v-for="post in posts" :key="post.data.id">
             <Post :post="post.data"/>
           </template>
@@ -45,7 +45,7 @@ export default {
   methods: {
     async fetchData () {
       try {
-        const response = await fetch('https://www.reddit.com/r/wallpapers.json?limit=40');
+        const response = await fetch('https://www.reddit.com/r/videos.json?limit=50');
         this.posts = await response.json().then(function(json) {
           return json.data.children
         });

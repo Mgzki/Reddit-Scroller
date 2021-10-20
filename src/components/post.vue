@@ -6,35 +6,42 @@
       </div>
 
       <!-- Content Display -->
-        <!-- Non Text Content -->
-        <div v-if="gallery" class="flex justify-center overflow-hidden flex-row relative" style="height:24rem">
-          <button @click="prevGalleryImage" class="absolute left-0 text-red-500 bg-blue-300" style="top:50%">prev</button>
+        <!-- Gallery -->
+        <div v-if="contentType === 'gallery'" class="flex justify-center overflow-hidden flex-row relative" style="height:24rem">
+          <button v-if="imageIndex > 0" @click="prevGalleryImage" class="absolute left-0 text-red-500 bg-blue-300" style="top:50%">prev</button>
           <a :href="mediaLink"><img :src="preview[imageIndex]" class="flex-1 h-full"></a>
-          <button @click="nextGalleryImage" class="absolute right-0 text-red-500 bg-blue-300" style="top:50%">next</button>
+          <button v-if="imageIndex < gallery.length - 1" @click="nextGalleryImage" class="absolute right-0 text-red-500 bg-blue-300" style="top:50%">next</button>
         </div>
         <!-- Image -->
-        <div v-else-if="!isSelfText && !video" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
+        <div v-else-if="contentType === 'image'" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
           <a :href="mediaLink"><img :src="preview" class="flex-1 h-full"></a>
         </div>
         <!-- Video -->
-        <div v-else-if="video" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
-          <video :src="preview" controls>
+        <div v-else-if="isVideo" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
+          
+          <video :src="content" controls>
             <p>Your browser doesn't support HTML5 video. Here is a <a :href="mediaLink">link to the video</a> instead.</p>
           </video>
+        </div>
+        <!-- Twitch -->
+        <div v-else-if="contentType === 'twitch'" class="flex justify-center overflow-hidden flex-row">
+          <button v-show="!isClickedToLoad" @click="loadVideo" width="max" class="w-full" style="height:24rem">
+            <img :src="this.post.thumbnail" class="w-full" height="100%">
+          </button>
+          <iframe v-show="isClickedToLoad" :src="test" frameborder="0" allowfullscreen="true" scrolling="no" height="384" width="100%"></iframe>
+        </div>
+        <!-- Tweet -->
+        <div v-else-if="contentType === 'tweet'" class="overflow-y-scroll text-left px-1 flex" style="height:24rem">
+          <a :href="content[1]" class="text-sm my-auto mx-auto py-4 px-4 bg-blue-200 rounded-xl">Tweet by {{content[0][0]}}</a>
         </div>
         <!-- Text -->
         <div v-else class="overflow-y-scroll text-left px-1 " style="height:24rem">
           <p class="text-sm my-auto ">{{selfText}}</p>
         </div>
-        
-      
       <!-- Author in Subreddit -->
       <p class="text-sm align-center bg-gray-200 h-8 rounded-b-lg pt-1">
-        
         By <Link :link="toAuthor">{{author}}</Link>
         in <Link :link="toSubreddit">{{subreddit}}</Link>
-        
-        {{contentType}}
       </p>
   </div>
 </template>
@@ -51,6 +58,8 @@ export default {
   data () {
     return {
       contentType: null, // video, selftext, link (to video, image, gallery)
+      isClickedToLoad: false,
+      content: null,
       imageIndex: 0,
       gallery: null,
       selfText: null,
@@ -60,12 +69,15 @@ export default {
       subreddit: '',
       mediaLink: '',
       preview: '',
+      test: '',
     }
   },
   methods: {
     populateData() {
-      this.contentType = this.getContentType;
-
+      let temp = this.getContentType
+      this.contentType = temp[1]; //tweet, video, gallery, image, twitch, rich:video
+      this.content = temp[0];
+      
       this.title = this.post.title;
       this.author = this.post.author;
       this.subreddit = this.subredditStr;
@@ -84,7 +96,12 @@ export default {
       if (this.imageIndex > 0) {
         this.imageIndex--;
       }
+    },
+    loadVideo: function () {
+      this.test = this.content;
+      this.isClickedToLoad = !this.isClickedToLoad
     }
+
   },
 
   created () {
@@ -98,8 +115,79 @@ export default {
     
     // if not selfText, check contentType, if not Video or image, check type of link (gallery, video, image)
     // handle if gallery
+    // getContentType: function () {
+    //   let type = null;
+    //   if (this.isSelfText) return 'selfText';
+    //   else if (this.isGallery) {
+    //     return 'gallery'
+    //   }
+    //   else if (Object.prototype.hasOwnProperty.call(this.post,'post_hint')) {
+    //     type = this.post.post_hint
+    //     if (type === 'link') {
+    //       // Video
+    //       // Embedded Twitch
+    //       if (this.post.domain === "clips.twitch.tv") {
+    //         return 'twitch'
+    //       }
+    //       // if (Object.prototype.hasOwnProperty.call(this.post.preview, 'reddit_video_preview') | (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video'))){
+    //       if (Object.prototype.hasOwnProperty.call(this.post, 'preview') | (Object.prototype.hasOwnProperty.call(this.post, 'media'))){
+    //         //Linked Video
+    //         if (Object.prototype.hasOwnProperty.call(this.post.preview, 'reddit_video_preview') | (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video'))){
+    //           return 'linkedVideo'
+    //         }
+    //       }
+    //       if (Object.prototype.hasOwnProperty.call(this.post, 'preview')) {
+    //         return 'linkedImage'
+    //       }
+    //       // photo link
+    //     }
+    //   } return type
+    // },
     getContentType: function () {
-      return this.post.post_hint
+      let type = null;
+      if (this.isSelfText) return this.getSelfText;
+      else if (this.isGallery) {
+        return [this.getGallery,'gallery']
+      }
+      else if (Object.prototype.hasOwnProperty.call(this.post,'post_hint')) {
+        type = this.post.post_hint
+        if (type === 'link') {
+          // Video
+          // Embedded Twitch
+          if (this.post.domain === "clips.twitch.tv") {
+            return [this.getTwitchClip,'twitch'];
+          }
+          if (this.post.domain === "twitter.com") {
+            return this.getTwitterPost
+          }
+          // if (Object.prototype.hasOwnProperty.call(this.post.preview, 'reddit_video_preview') | (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video'))){
+        
+          if (Object.prototype.hasOwnProperty.call(this.post, 'media')){
+            //Linked Video
+            if (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video')){
+              return [this.post.media.reddit_video.fallback_url,'video'];
+            }
+          }
+          // Post has preview
+          if (Object.prototype.hasOwnProperty.call(this.post, 'preview')) {
+
+            // Post has video preview
+            if (Object.prototype.hasOwnProperty.call(this.post.preview, 'reddit_video_preview')) {
+              return [this.post.preview.reddit_video_preview.fallback_url,'video'];
+            }
+
+            // Post has image preview and is enabled
+            else if (this.post.preview.enabled) {
+              return [this.post.preview.images[0].resolutions[this.numResolutions - 1].url.replace(/amp;/g,''),'image']
+            }
+          }
+          
+          if (Object.prototype.hasOwnProperty.call(this.post, 'preview')) {
+            return [this.post.thumbnail, 'image']
+          }
+          // photo link
+        }
+      } return ['this.post.thumbnail','image']
     },
 
     // Returns the subreddit with the first character capitalized
@@ -121,15 +209,14 @@ export default {
     toLink: function() {
       return "https://reddit.com" + this.post.permalink;
     },
-    isVideo: function(){
-      //this.post.preview.reddit_video_preview.fallback_url
-      //this.post.media.reddit_video.fallback_url
-      if (Object.prototype.hasOwnProperty.call(this.post, "preview")) {
-        if (!this.post.preview.enabled && !this.selfText) {
-          return true
-        }
+    
+    isVideo: function() {
+      let videoTypes = ['rich:video', 'video'];
+      for (let type in videoTypes) {
+        if (videoTypes[type] === this.contentType) return true;
       } return false
     },
+
     getPreview: function () {
       if (this.gallery) {
         return this.gallery
@@ -141,9 +228,22 @@ export default {
         } else if (this.isVideo && Object.prototype.hasOwnProperty.call(this.post.preview, "reddit_video_preview")) {
           return this.post.preview.reddit_video_preview.fallback_url
         }
-        return "https://images.unsplash.com/photo-1508921912186-1d1a45ebb3c1?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=687&q=80"
       }
       return this.post.thumbnail
+    },
+
+    getTwitchClip: function () {
+      // pulls media source and converts into iframe embeddable format
+      let slashIndex = 15; //index of the end of 'clips.twitch.tv' for use with inserting '/' to create valid url
+      let url = this.post.secure_media_embed.content.replace(/amp;/g,'').match(/url=https[A-z./?=%0-9-&;]*/)[0].split('https')[1].slice(0,-7).replace(/%[0-9][A-z]/g,'');
+      return 'https://' + [url.slice(0,slashIndex),'/embed?clip=',url.replace(/%[0-9][A-z]/g,'').slice(slashIndex)].join('') + '&parent=localhost'
+
+    },
+
+    getTwitterPost: function () {
+      // get user 
+      let user = this.post.media.oembed.author_url.toLowerCase().match(/[^/]+(?=\/$|$)/g)
+      return [[user,this.post.media.oembed.url],'tweet'];
     },
 
     // Returns number of preview resolutions for a post
