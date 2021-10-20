@@ -11,7 +11,7 @@
       </div>
 
       <!-- Search -->
-      <input type="text" class="px-2 py-2 sm:py-4 col-start-3 sm:col-start-2 col-span-8 sm:col-span-10 bg-opacity-0 rounded-md shadow-lg" placeholder="r/">
+      <input v-model="urlTail" v-on:keyup.enter="updateUrl" type="text" class="px-2 py-2 sm:py-4 col-start-3 sm:col-start-2 col-span-8 sm:col-span-10 bg-opacity-0 rounded-md shadow-lg" placeholder="r/">
     </nav>
   </section>
 
@@ -40,12 +40,17 @@ export default {
     return {
       posts: [],
       load: [],
+      url: 'https://www.reddit.com/',
+      urlTail: 'r/wallpapers',
+      limit: 5,
+
     }
   },
   methods: {
     async fetchData () {
+      let url = this.buildUrl()
       try {
-        const response = await fetch('https://www.reddit.com/r/wallpapers.json?limit=25');
+        const response = await fetch(this.buildUrl(false));
         this.posts = await response.json().then(function(json) {
           return json.data.children
         });
@@ -56,7 +61,7 @@ export default {
     async loadMore() {
       let after = this.posts[this.posts.length - 1].data.id
       try{
-        const response = await fetch('https://www.reddit.com/r/wallpapers.json?after=t3_' + after);
+        const response = await fetch(this.buildAfterUrl() + after);
         this.load = await response.json().then(function(json) {
           return json.data.children
         }); 
@@ -66,11 +71,25 @@ export default {
       } catch (error) {
         console.log(error);
       }
+    },
+
+    // Helper function for creating fetch url
+    buildUrl (limit) {
+      return limit ? this.url + this.urlTail + '.json?limit=' + this.limit : this.url + this.urlTail + '.json';
+    },
+
+    // Helper function for loading more posts
+    buildAfterUrl () {
+      return this.buildUrl(false) + '?after=t3_'
+    },
+
+    updateUrl() {
+      this.urlTail.match(/(user|r)\/.*/) ? this.fetchData() : null
     }
   },
   created() {
     this.fetchData();
-  }
+  },
 }
 </script>
 
