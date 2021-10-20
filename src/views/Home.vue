@@ -45,7 +45,7 @@ export default {
   methods: {
     async fetchData () {
       try {
-        const response = await fetch('https://www.reddit.com/r/videos.json?limit=50');
+        const response = await fetch('https://www.reddit.com/r/wallpapers.json?limit=25');
         this.posts = await response.json().then(function(json) {
           return json.data.children
         });
@@ -54,11 +54,15 @@ export default {
       }
     },
     async loadMore() {
+      let after = this.posts[this.posts.length - 1].data.id
       try{
-        const response = await fetch('https://www.reddit.com/r/wallpapers.json');
-        this.posts = await response.json().then(function(json) {
+        const response = await fetch('https://www.reddit.com/r/wallpapers.json?after=t3_' + after);
+        this.load = await response.json().then(function(json) {
           return json.data.children
-        });
+        }); 
+        for (const post in this.load) {
+          this.posts.push(this.load[post])
+        }
       } catch (error) {
         console.log(error);
       }

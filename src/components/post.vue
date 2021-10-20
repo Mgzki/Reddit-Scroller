@@ -209,7 +209,7 @@ export default {
     toLink: function() {
       return "https://reddit.com" + this.post.permalink;
     },
-    
+
     isVideo: function() {
       let videoTypes = ['rich:video', 'video'];
       for (let type in videoTypes) {
@@ -275,17 +275,7 @@ export default {
         images.push(this.post.media_metadata[id].p[3].u.replace(/amp;/g,''))
       }
       return images;
-    },
-
-    // Checks for valid embeddable video file extension within preview
-    hasVideoExtension: function () {
-      // match(/.*.(mp4|gifv|h.264|AAC|webm)/i)
-      // console.log(this.post.preview.images[0].source.url.match(/.*.(mp4|gifv|h.264|AAC|webm)/i),this.permalink)
-      // return this.post.preview.images[0].source.url.match(/.*.(mp4|gifv|h.264|AAC|webm)/i)
-      return 0
-    },
-
-    
+    },    
   }
 }
 </script>
