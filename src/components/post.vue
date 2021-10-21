@@ -70,9 +70,9 @@
         </div>
 
       <!-- Author in Subreddit -->
-      <p class="text-sm align-center bg-gray-200 h-8 rounded-b-lg pt-1">
-        By <Link :link="toAuthor">{{author}}</Link>
-        in <Link :link="toSubreddit">{{subreddit}}</Link>
+      <p class="text-sm align-center bg-gray-200 h-8 rounded-b-lg pt-1 ">
+        By <Link @click="fetchFromLink(true)">{{author}}</Link>
+        in <Link @click="fetchFromLink(false)">{{subreddit}}</Link>
       </p>
   </div>
 </template>
@@ -118,6 +118,10 @@ export default {
       this.mediaLink = this.post.url;
       this.video = this.isVideo;
       this.preview = this.getPreview;
+    },
+
+    fetchFromLink(author) {
+      author ? this.$emit("fetchFromLink", {url: this.author, isAuthor: author}) : this.$emit("fetchFromLink", {url: this.subreddit, isAuthor:author})
     },
 
     nextGalleryImage() {
@@ -337,8 +341,14 @@ export default {
       let ids = this.getGalleryImageIds;
       for (let id in ids) {
         let realId = ids[id]
-        // breaks if an image has been deleted
-        images.push(this.post.media_metadata[realId].p[this.numGalleryImageResolutions - 1].u.replace(/amp;/g,''))
+        // Push to gallery if image was not deleted
+        try {
+          images.push(this.post.media_metadata[realId].p[this.numGalleryImageResolutions - 1].u.replace(/amp;/g,''))
+        } catch (error) {
+          console.log(error)
+          console.log(this.post.title)
+        }
+        
       }
       return images;
     },

@@ -20,7 +20,7 @@
     <div class="flex max-w-screen-2xl justify-center mx-auto px-2 ">
         <div class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-9 lg:grid-cols-12 xl:grid-cols-10 grid-flow-row gap-2 pt-6 ">
           <template v-for="post in posts" :key="post.data.id">
-            <Post :post="post.data"/>
+            <Post :post="post.data" @fetchFromLink="fetchFromLink($event)"/>
           </template>
         </div>
       </div>
@@ -86,6 +86,12 @@ export default {
 
     updateUrl() {
       this.urlTail.match(/(user|r)\/.*/) ? this.fetchData() : null
+    },
+
+    // Helper for navigation between users/subreddits through clicked links
+    fetchFromLink(event){
+      event.isAuthor ? this.urlTail = 'user/' + event.url : this.urlTail = 'r/' + event.url
+      this.fetchData();
     }
   },
   created() {
