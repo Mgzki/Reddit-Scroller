@@ -18,10 +18,13 @@
   <!-- Body -->
   <div class="bg-gray-400 overflow-y-scroll" style="height: 91vh">
     <div class="flex max-w-screen-2xl justify-center mx-auto px-2 ">
-        <div class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-9 lg:grid-cols-12 xl:grid-cols-10 grid-flow-row gap-2 pt-6 ">
+        <div v-if="posts.length > 0" class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-9 lg:grid-cols-12 xl:grid-cols-10 grid-flow-row gap-2 pt-6 ">
           <template v-for="post in posts" :key="post.data.id">
             <Post :post="post.data" @fetchFromLink="fetchFromLink($event)"/>
           </template>
+        </div>
+        <div v-else class="mt-20 bg-gray-100 rounded-xl shadow-lg max-w-2xl ">
+            <p class="py-4 px-12">Sorry, no posts here!</p>
         </div>
       </div>
   </div>
@@ -42,17 +45,23 @@ export default {
       load: [],
       url: 'https://www.reddit.com/',
       urlTail: 'r/askreddit',
-      limit: 150,
+      limit: 50,
 
     }
   },
   methods: {
     async fetchData () {
+      // let temp = []
       let url = this.buildUrl(true)
       try {
         const response = await fetch(url);
         this.posts = await response.json().then(function(json) {
-          return json.data.children
+          // Ensures only posts (kind = t3) are sent through
+          let children = [];
+          for (let child in json.data.children) {
+            if (json.data.children[child].kind === 't3') children.push(json.data.children[child])
+          }
+          return children
         });
       } catch (error) {
         console.log(error);
@@ -67,7 +76,9 @@ export default {
           return json.data.children
         }); 
         for (const post in this.load) {
-          this.posts.push(this.load[post])
+          if (this.load[post].kind === 't3') {
+            this.posts.push(this.load[post])
+          }
         }
       } catch (error) {
         console.log(error);
