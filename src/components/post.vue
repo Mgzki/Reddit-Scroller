@@ -2,20 +2,20 @@
   <div class="my-2 col-span-10 sm:col-span-5 md:col-span-3 xl:col-span-2 bg-gray-100 rounded-xl shadow-lg" >
       <!-- Post Title -->
       <div class="flex py-1 bg-gray-200 h-16 rounded-t-lg text-center px-2">
-        <a :href="toLink" class="font-semibold truncate my-auto">{{title}}</a>
+        <a :href="toLink" target="_blank" class="font-semibold truncate my-auto">{{title}}</a>
       </div>
 
       <!-- Content Display -->
         <!-- Gallery -->
         <div v-if="contentType === 'gallery'" class="flex justify-center overflow-hidden flex-row relative" style="height:24rem">
           <button v-if="imageIndex > 0" @click="prevGalleryImage" class="absolute left-0 text-red-500 bg-blue-300" style="top:50%">prev</button>
-          <a :href="mediaLink"><img :src="preview[imageIndex]" class="flex-1 h-full"></a>
+          <a :href="mediaLink" target="_blank"><img :src="preview[imageIndex]" class="flex-1 h-full"></a>
           <button v-if="imageIndex < gallery.length - 1" @click="nextGalleryImage" class="absolute right-0 text-red-500 bg-blue-300" style="top:50%">next</button>
         </div>
 
         <!-- Image -->
         <div v-else-if="contentType === 'image'" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
-          <a :href="mediaLink"><img :src="content" class="flex-1 h-full"></a>
+          <a :href="mediaLink" target="_blank"><img :src="content" class="flex-1 h-full"></a>
         </div>
 
         <!-- Video -->
@@ -54,19 +54,19 @@
         <!-- NonEmbeddable Video -->
         <!-- Display thumbnail and link to video -->
         <div v-else-if="content === 'nonEmbeddable'" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
-          <a :href="this.mediaLink">
+          <a :href="this.mediaLink" target="_blank">
             <img :src="this.post.thumbnail">
           </a>
         </div>
 
         <!-- Tweet -->
         <div v-else-if="contentType === 'tweet'" class="overflow-y-scroll text-left px-1 flex" style="height:24rem">
-          <a :href="content[1]" class="text-sm my-auto mx-auto py-4 px-4 bg-blue-200 rounded-xl">Tweet by {{content[0][0]}}</a>
+          <a :href="content[1]" target="_blank" class="text-sm my-auto mx-auto py-4 px-4 bg-blue-200 rounded-xl">Tweet by {{content[0][0]}}</a>
         </div>
 
         <!-- Text -->
         <div v-else class="overflow-y-scroll text-left px-1 " style="height:24rem">
-          <p class="text-sm my-auto ">{{selfText}}</p>
+          <a :href="medialink" target="_blank" class="text-sm my-auto ">{{selfText}}</a>
         </div>
 
       <!-- Author in Subreddit -->
@@ -177,17 +177,16 @@ export default {
         } 
         return ['no thumbnail','embedded']
       }
+      else if (this.post.domain === "twitter.com") {
+            return this.getTwitterPost
+      }
       
       
       else if (Object.prototype.hasOwnProperty.call(this.post,'post_hint')) {
         type = this.post.post_hint
         if (type === 'link' | type === 'rich:video' | type === 'hosted:video') {
           // Video
-
           
-          if (this.post.domain === "twitter.com") {
-            return this.getTwitterPost
-          }
           if (this.post.domain === "youtube.com" | this.post.domain === "youtu.be") {
             let url = this.getYoutubeUrl
             if (url ==='nonEmbeddable') return ['', 'nonEmbeddable']
