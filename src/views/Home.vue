@@ -41,14 +41,14 @@ export default {
       posts: [],
       load: [],
       url: 'https://www.reddit.com/',
-      urlTail: 'r/wallpapers',
-      limit: 5,
+      urlTail: 'r/askreddit',
+      limit: 150,
 
     }
   },
   methods: {
     async fetchData () {
-      let url = this.buildUrl()
+      let url = this.buildUrl(true)
       try {
         const response = await fetch(url);
         this.posts = await response.json().then(function(json) {

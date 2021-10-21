@@ -12,32 +12,63 @@
           <a :href="mediaLink"><img :src="preview[imageIndex]" class="flex-1 h-full"></a>
           <button v-if="imageIndex < gallery.length - 1" @click="nextGalleryImage" class="absolute right-0 text-red-500 bg-blue-300" style="top:50%">next</button>
         </div>
+
         <!-- Image -->
         <div v-else-if="contentType === 'image'" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
-          <a :href="mediaLink"><img :src="preview" class="flex-1 h-full"></a>
+          <a :href="mediaLink"><img :src="content" class="flex-1 h-full"></a>
         </div>
+
         <!-- Video -->
         <div v-else-if="isVideo" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
-          
+          <!-- <button v-show="!isClickedToLoad" @click="loadVideo" width="max" class="w-full" style="height:24rem">
+            <img :src="this.post.preview.images[0].source.url.replace(/amp;/g,'')" class="w-full" height="100%">
+          </button> -->
           <video :src="content" controls>
             <p>Your browser doesn't support HTML5 video. Here is a <a :href="mediaLink">link to the video</a> instead.</p>
           </video>
         </div>
-        <!-- Twitch -->
-        <div v-else-if="contentType === 'twitch'" class="flex justify-center overflow-hidden flex-row">
-          <button v-show="!isClickedToLoad" @click="loadVideo" width="max" class="w-full" style="height:24rem">
-            <img :src="this.post.thumbnail" class="w-full" height="100%">
-          </button>
-          <iframe v-show="isClickedToLoad" :src="test" frameborder="0" allowfullscreen="true" scrolling="no" height="384" width="100%"></iframe>
+
+        <!-- Embedded videos -->
+        <div v-else-if="contentType === 'embedded'" class="flex justify-center overflow-hidden flex-row">
+
+          <!-- No Thumbnail -->
+          <template v-if="content === 'no thumbnail'">
+            <button v-show="!isClickedToLoad" @click="loadVideo" width="max" class="w-full flex justify-center items-center bg-gray-500" style="height:24rem">
+              <img src="https://www.svgrepo.com/show/13672/play-button.svg" width="50" height="100%">
+            </button>
+            <iframe v-show="isClickedToLoad" :src="this.getTwitchClip" frameborder="0" allowfullscreen="true" scrolling="no" height="384" width="100%"></iframe>
+          </template>
+
+          <!-- Has Thumbnail -->
+          <template v-else>
+            <button  v-show="!isClickedToLoad" @click="loadVideo" width="max" class="w-full" style="height:24rem">
+              <img :src="this.post.preview.images[0].resolutions[numPreviewResolutions - 1].url.replace(/amp;/g,'')" class="w-full" height="100%">
+            </button>
+
+            <!-- Video frame for thumbnail-->
+            <iframe v-show="isClickedToLoad" :src="test" frameborder="0" allowfullscreen="true" scrolling="no" height="384" width="100%"></iframe>
+
+          </template>
         </div>
+
+        <!-- NonEmbeddable Video -->
+        <!-- Display thumbnail and link to video -->
+        <div v-else-if="content === 'nonEmbeddable'" class="flex justify-center overflow-hidden flex-row" style="height:24rem">
+          <a :href="this.mediaLink">
+            <img :src="this.post.thumbnail">
+          </a>
+        </div>
+
         <!-- Tweet -->
         <div v-else-if="contentType === 'tweet'" class="overflow-y-scroll text-left px-1 flex" style="height:24rem">
           <a :href="content[1]" class="text-sm my-auto mx-auto py-4 px-4 bg-blue-200 rounded-xl">Tweet by {{content[0][0]}}</a>
         </div>
+
         <!-- Text -->
         <div v-else class="overflow-y-scroll text-left px-1 " style="height:24rem">
           <p class="text-sm my-auto ">{{selfText}}</p>
         </div>
+
       <!-- Author in Subreddit -->
       <p class="text-sm align-center bg-gray-200 h-8 rounded-b-lg pt-1">
         By <Link :link="toAuthor">{{author}}</Link>
@@ -70,6 +101,7 @@ export default {
       mediaLink: '',
       preview: '',
       test: '',
+      domain: 'localhost', // helper for when &parent=domain is required for an embedded video
     }
   },
   methods: {
@@ -87,21 +119,29 @@ export default {
       this.video = this.isVideo;
       this.preview = this.getPreview;
     },
+
     nextGalleryImage() {
       if (this.imageIndex < this.gallery.length - 1) {
         this.imageIndex++;
       }
     },
+
     prevGalleryImage() {
       if (this.imageIndex > 0) {
         this.imageIndex--;
       }
     },
+
     loadVideo() {
       this.test = this.content;
       this.isClickedToLoad = !this.isClickedToLoad
-    }
+    },
 
+    // Helper function for certain posts that don't have media/preview data
+    hasVideoExtension(url) {
+      url.match(/.*.(mp4|gifv|h.264|AAC|webm)/i)
+      return ''
+    },
   },
 
   created () {
@@ -109,66 +149,55 @@ export default {
   },
 
   computed: {
-    // Returns ContentType (Video, Link, Image)
-    // post_hint doesn't exist for galleries?
-    // post_hint sometimes isn't there for self-posts either
-    
-    // if not selfText, check contentType, if not Video or image, check type of link (gallery, video, image)
-    // handle if gallery
-    // getContentType: function () {
-    //   let type = null;
-    //   if (this.isSelfText) return 'selfText';
-    //   else if (this.isGallery) {
-    //     return 'gallery'
-    //   }
-    //   else if (Object.prototype.hasOwnProperty.call(this.post,'post_hint')) {
-    //     type = this.post.post_hint
-    //     if (type === 'link') {
-    //       // Video
-    //       // Embedded Twitch
-    //       if (this.post.domain === "clips.twitch.tv") {
-    //         return 'twitch'
-    //       }
-    //       // if (Object.prototype.hasOwnProperty.call(this.post.preview, 'reddit_video_preview') | (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video'))){
-    //       if (Object.prototype.hasOwnProperty.call(this.post, 'preview') | (Object.prototype.hasOwnProperty.call(this.post, 'media'))){
-    //         //Linked Video
-    //         if (Object.prototype.hasOwnProperty.call(this.post.preview, 'reddit_video_preview') | (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video'))){
-    //           return 'linkedVideo'
-    //         }
-    //       }
-    //       if (Object.prototype.hasOwnProperty.call(this.post, 'preview')) {
-    //         return 'linkedImage'
-    //       }
-    //       // photo link
-    //     }
-    //   } return type
-    // },
     getContentType: function () {
+      // handle videos by domain and 
+      
       let type = null;
       if (this.isSelfText) return this.getSelfText;
       else if (this.isGallery) {
-        return [this.getGallery,'gallery']
+        return [this.getGallery,'gallery'];
       }
+      else if(this.post.domain === "i.redd.it") {
+        
+        return [this.post.preview.images[0].resolutions[this.numPreviewResolutions - 1].url.replace(/amp;/g,''), 'image']
+      }
+      
+      else if (this.post.domain === "imgur.com" | this.post.domain === "i.imgur.com") {
+        return this.hasPreviewProperty 
+          ? [this.post.preview.images[0].resolutions[this.numPreviewResolutions - 1].url.replace(/amp;/g,''), 'image'] 
+          : [this.post.url, 'video']
+      }
+      else if (this.post.domain === "clips.twitch.tv") {
+        if (this.hasPreviewProperty) {
+          return [this.getTwitchClip,'embedded']
+        } 
+        return ['no thumbnail','embedded']
+      }
+      
+      
       else if (Object.prototype.hasOwnProperty.call(this.post,'post_hint')) {
         type = this.post.post_hint
-        if (type === 'link' | type === 'hosted:video') {
+        if (type === 'link' | type === 'rich:video' | type === 'hosted:video') {
           // Video
-          // Embedded Twitch
-          if (this.post.domain === "clips.twitch.tv") {
-            return [this.getTwitchClip,'twitch'];
-          }
+
+          
           if (this.post.domain === "twitter.com") {
             return this.getTwitterPost
           }
+          if (this.post.domain === "youtube.com" | this.post.domain === "youtu.be") {
+            let url = this.getYoutubeUrl
+            if (url ==='nonEmbeddable') return ['', 'nonEmbeddable']
+            return [url, 'embedded'];
+          }
+          
           // if (Object.prototype.hasOwnProperty.call(this.post.preview, 'reddit_video_preview') | (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video'))){
         
-          if (Object.prototype.hasOwnProperty.call(this.post, 'media')){
-            //Linked Video
-            if (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video')){
-              console.log(this.post.title)
-              return [this.post.media.reddit_video.fallback_url,'video'];
-            }
-          }
+          // if (Object.prototype.hasOwnProperty.call(this.post, 'media')){
+          //   //Linked Video
+          //   if (Object.prototype.hasOwnProperty.call(this.post.media, 'reddit_video')){
+          //     return [this.post.media.reddit_video.fallback_url,'video'];
+          //   }
+          // }
           // Post has preview
           if (Object.prototype.hasOwnProperty.call(this.post, 'preview')) {
 
@@ -178,17 +207,25 @@ export default {
             }
 
             // Post has image preview and is enabled
-            else if (this.post.preview.enabled) {
-              return [this.post.preview.images[0].resolutions[this.numResolutions - 1].url.replace(/amp;/g,''),'image']
-            }
+            // else if (this.post.preview.enabled) {
+            //   return [this.post.preview.images[0].resolutions[this.numPreviewResolutions - 1].url.replace(/amp;/g,''),'image']
+            // }
           }
           
           if (Object.prototype.hasOwnProperty.call(this.post, 'preview')) {
-            return [this.post.thumbnail, 'image']
+            if (Object.prototype.hasOwnProperty.call(this.post.preview, 'images')) {
+              return [this.post.preview.images[0].resolutions[this.numPreviewResolutions - 1].url.replace(/amp;/g,''), 'image']
+            } 
+            
+            // return 0
           }
-          // photo link
-        }
-      } return ['this.post.thumbnail','image']
+
+      }} 
+      return ['ahh','wtf'] // nothing should get here
+    },
+
+    hasPreviewProperty: function () {
+      return Object.prototype.hasOwnProperty.call(this.post, 'preview')
     },
 
     // Returns the subreddit with the first character capitalized
@@ -225,7 +262,7 @@ export default {
       else if (Object.prototype.hasOwnProperty.call(this.post, "preview")) {
         if (this.post.preview.enabled) {
           //takes lowest resolution image to fit display div with reasonable quality
-          return this.post.preview.images[0].resolutions[this.numResolutions - 1].url.replace(/amp;/g,'')
+          return this.post.preview.images[0].resolutions[this.numPreviewResolutions - 1].url.replace(/amp;/g,'')
         } else if (this.isVideo && Object.prototype.hasOwnProperty.call(this.post.preview, "reddit_video_preview")) {
           return this.post.preview.reddit_video_preview.fallback_url
         }
@@ -235,10 +272,8 @@ export default {
 
     getTwitchClip: function () {
       // pulls media source and converts into iframe embeddable format
-      let slashIndex = 15; //index of the end of 'clips.twitch.tv' for use with inserting '/' to create valid url
-      let url = this.post.secure_media_embed.content.replace(/amp;/g,'').match(/url=https[A-z./?=%0-9-&;]*/)[0].split('https')[1].slice(0,-7).replace(/%[0-9][A-z]/g,'');
-      return 'https://' + [url.slice(0,slashIndex),'/embed?clip=',url.replace(/%[0-9][A-z]/g,'').slice(slashIndex)].join('') + '&parent=localhost'
-
+      let clipId = this.post.url.match(/tv\/.*/)[0].replace(/tv\//,'')
+      return 'https://clips.twitch.tv/embed?clip=' + clipId + '&parent=' + this.domain
     },
 
     getTwitterPost: function () {
@@ -247,9 +282,28 @@ export default {
       return [[user,this.post.media.oembed.url],'tweet'];
     },
 
+    getYoutubeUrl: function () {
+      let domain = this.post.domain
+      let vidId = '';
+      if (this.post.url.match(/clip\/.*/)) {
+        return 'nonEmbeddable' // for youtube.com/clips/ links which have no embeddable information
+      }
+      domain === 'youtu.be' 
+        ? vidId = this.post.url.match(/be\/.*/)[0].replace(/be\//,'') // youtu.be domain videos
+        : vidId = this.post.url.match(/v=.*/)[0].replace(/v=/,'') // youtube.com domain videos
+      return 'https://youtube.com/embed/' + vidId + '?feature=oembed&enablejsapi=1'
+    },
+
     // Returns number of preview resolutions for a post
-    numResolutions: function () {
+    numPreviewResolutions: function () {
       return this.post.preview.images[0].resolutions.length
+    },
+
+    // Returns number of preview resolutions for an image in a gallery
+    numGalleryImageResolutions: function () {
+      let ids = this.getGalleryImageIds
+      let len = ids.length - 1
+      return this.post.media_metadata[ids[len]].p.length 
     },
     
     // Returns boolean for if the post is a selfText
@@ -267,16 +321,28 @@ export default {
       return (Object.prototype.hasOwnProperty.call(this.post, "is_gallery"))
     },
 
+    // Returns array of unique image ids in a gallery
+    // Helper function for pulling media_metadata by unique id
+    getGalleryImageIds: function () {
+      let ids = []
+      for (let item in this.post.gallery_data.items) {
+        ids.push(this.post.gallery_data.items[item].media_id)
+      } return ids
+    },
+
     // Returns the gallery
     getGallery: function () {
       let images = [];
       // Get image ID from gallery data to pull url for each image from media_metadata
-      for (let item in this.post.gallery_data.items) {
-        let id = this.post.gallery_data.items[item].media_id
-        images.push(this.post.media_metadata[id].p[3].u.replace(/amp;/g,''))
+      let ids = this.getGalleryImageIds;
+      for (let id in ids) {
+        let realId = ids[id]
+        // breaks if an image has been deleted
+        images.push(this.post.media_metadata[realId].p[this.numGalleryImageResolutions - 1].u.replace(/amp;/g,''))
       }
       return images;
-    },    
+    },
+      
   }
 }
 </script>
