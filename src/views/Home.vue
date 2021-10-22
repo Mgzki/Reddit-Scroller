@@ -44,7 +44,7 @@ export default {
       posts: [],
       load: [],
       url: 'https://www.reddit.com/',
-      urlTail: 'r/askreddit',
+      urlTail: 'r/wallpapers',
       limit: 50,
 
     }
@@ -59,7 +59,9 @@ export default {
           // Ensures only posts (kind = t3) are sent through
           let children = [];
           for (let child in json.data.children) {
-            if (json.data.children[child].kind === 't3') children.push(json.data.children[child])
+            let fetchedData = json.data.children[child]
+            if (fetchedData.kind === 't3' && fetchedData.data.removed_by_category === null) // is a post and hasn't been removed
+              children.push(fetchedData)
           }
           return children
         });
@@ -76,8 +78,9 @@ export default {
           return json.data.children
         }); 
         for (const post in this.load) {
-          if (this.load[post].kind === 't3') {
-            this.posts.push(this.load[post])
+          let fetchedData = this.load[post]
+          if (fetchedData.kind === 't3' && fetchedData.data.removed_by_category === null) { // is a post and hasn't been removed
+            this.posts.push(fetchedData)
           }
         }
       } catch (error) {
@@ -103,7 +106,7 @@ export default {
     fetchFromLink(event){
       event.isAuthor ? this.urlTail = 'user/' + event.url : this.urlTail = 'r/' + event.url
       this.fetchData();
-    }
+    },
   },
   created() {
     this.fetchData();

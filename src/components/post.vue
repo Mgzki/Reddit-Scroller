@@ -9,7 +9,7 @@
         <!-- Gallery -->
         <div v-if="contentType === 'gallery'" class="flex justify-center overflow-hidden flex-row relative" style="height:24rem">
           <button v-if="imageIndex > 0" @click="prevGalleryImage" class="absolute left-0 text-red-500 bg-blue-300" style="top:50%">prev</button>
-          <a :href="mediaLink" target="_blank"><img :src="preview[imageIndex]" class="flex-1 h-full"></a>
+          <a :href="mediaLink" target="_blank"><img :src="gallery[imageIndex]" class="flex-1 h-full"></a>
           <button v-if="imageIndex < gallery.length - 1" @click="nextGalleryImage" class="absolute right-0 text-red-500 bg-blue-300" style="top:50%">next</button>
         </div>
 
@@ -70,9 +70,9 @@
         </div>
 
       <!-- Author in Subreddit -->
-      <p class="text-sm align-center bg-gray-200 h-8 rounded-b-lg pt-1 ">
-        By <Link @click="fetchFromLink(true)">{{author}}</Link>
-        in <Link @click="fetchFromLink(false)">{{subreddit}}</Link>
+      <p class="text-sm align-center bg-gray-200 h-12 rounded-b-lg pt-1 truncate">
+        <Link @click="fetchFromLink(true)">{{author}}</Link>
+        in <Link @click="fetchFromLink(false)">r/{{subreddit}}</Link>
       </p>
   </div>
 </template>
@@ -106,18 +106,20 @@ export default {
   },
   methods: {
     populateData() {
-      let temp = this.getContentType
-      this.contentType = temp[1]; //tweet, video, gallery, image, twitch, rich:video
-      this.content = temp[0];
-      
       this.title = this.post.title;
       this.author = this.post.author;
       this.subreddit = this.subredditStr;
-      this.gallery = this.isGallery ? this.getGallery : false
-      this.selfText = this.isSelfText ? this.getSelfText : false
       this.mediaLink = this.post.url;
-      this.video = this.isVideo;
-      this.preview = this.getPreview;
+      if (this.isSelfText) {
+        this.selfText = this.getSelfText
+      } else {
+        this.selfText = false;
+        let temp = this.getContentType
+        this.contentType = temp[1]; // for determining how/what to display
+        this.content = temp[0];
+        this.gallery = this.isGallery ? this.getGallery : false
+        this.video = this.isVideo;
+      }
     },
 
     fetchFromLink(author) {
@@ -157,6 +159,7 @@ export default {
       // handle videos by domain and 
       
       let type = null;
+      try {
       if (this.isSelfText) return this.getSelfText;
       else if (this.isGallery) {
         return [this.getGallery,'gallery'];
@@ -219,12 +222,17 @@ export default {
             if (Object.prototype.hasOwnProperty.call(this.post.preview, 'images')) {
               return [this.post.preview.images[0].resolutions[this.numPreviewResolutions - 1].url.replace(/amp;/g,''), 'image']
             } 
-            
             // return 0
           }
 
-      }} 
-      return ['ahh','wtf'] // nothing should get here
+      }}
+      
+      if (Object.prototype.hasOwnProperty.call(this.post, 'thumbnail')) {
+        if (this.post.thumbnail !== 'default') return [this.post.thumbnail, 'image'] 
+      } // assume it's an image for now
+       // assume image, only gets here when no other image data is available
+      } catch (error){console.log(error, this.post.title, this.post.id)}
+      return ['https://i.stack.imgur.com/y9DpT.jpg','image']
     },
 
     hasPreviewProperty: function () {
@@ -344,8 +352,8 @@ export default {
         try {
           images.push(this.post.media_metadata[realId].p[this.numGalleryImageResolutions - 1].u.replace(/amp;/g,''))
         } catch (error) {
-          console.log(error)
           console.log(this.post.title)
+          console.log(error)
         }
         
       }
