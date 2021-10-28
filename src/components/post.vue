@@ -46,7 +46,7 @@
             </button>
 
             <!-- Video frame for thumbnail-->
-            <iframe v-show="isClickedToLoad" :src="test" frameborder="0" allowfullscreen="true" scrolling="no" height="384" width="100%"></iframe>
+            <iframe v-show="isClickedToLoad" :src="content" frameborder="0" allowfullscreen="true" scrolling="no" height="384" width="100%"></iframe>
 
           </template>
         </div>
@@ -70,7 +70,7 @@
         </div>
 
       <!-- Author in Subreddit -->
-      <p class="text-sm align-center bg-gray-200 h-12 rounded-b-lg pt-1 truncate">
+      <p class="text-sm align-center bg-gray-200 h-12 rounded-b-lg pt-1">
         <Link @click="fetchFromLink(true)">{{author}}</Link>
         in <Link @click="fetchFromLink(false)">r/{{subreddit}}</Link>
       </p>
@@ -100,7 +100,7 @@ export default {
       subreddit: '',
       mediaLink: '',
       preview: '',
-      test: '',
+      // test: '',
       domain: 'localhost', // helper for when &parent=domain is required for an embedded video
     }
   },
@@ -139,7 +139,7 @@ export default {
     },
 
     loadVideo() {
-      this.test = this.content;
+      // this.test = this.content;
       this.isClickedToLoad = !this.isClickedToLoad
     },
 
