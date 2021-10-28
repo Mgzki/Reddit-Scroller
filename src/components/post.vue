@@ -8,9 +8,12 @@
       <!-- Content Display -->
         <!-- Gallery -->
         <div v-if="contentType === 'gallery'" class="flex justify-center overflow-hidden flex-row relative" style="height:24rem">
-          <button v-if="imageIndex > 0" @click="prevGalleryImage" class="absolute left-0 text-red-500 bg-blue-300" style="top:50%">prev</button>
+          <!-- Back Button -->
+          <BackButton v-if="imageIndex > 0" @click="prevGalleryImage"/>
+          <!-- Image -->
           <a :href="mediaLink" target="_blank"><img :src="gallery[imageIndex]" class="flex-1 h-full"></a>
-          <button v-if="imageIndex < gallery.length - 1" @click="nextGalleryImage" class="absolute right-0 text-red-500 bg-blue-300" style="top:50%">next</button>
+          <!-- Next Button -->
+          <NextButton v-if="imageIndex < gallery.length - 1" @click="nextGalleryImage" />
         </div>
 
         <!-- Image -->
@@ -79,9 +82,13 @@
 
 <script>
 import Link from '../components/link.vue'
+import BackButton from '../components/back-button.vue'
+import NextButton from '../components/next-button.vue'
 export default {
   components: {
     Link,
+    BackButton,
+    NextButton,
   },
   props: {
     post: Object
