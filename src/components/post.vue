@@ -14,6 +14,10 @@
           <a :href="mediaLink" target="_blank"><img :src="gallery[imageIndex]" class="flex-1 h-full"></a>
           <!-- Next Button -->
           <NextButton v-if="imageIndex < gallery.length - 1" @click="nextGalleryImage" />
+          <!-- gallery length overlay -->
+          <div class="absolute bottom-0 bg-gray-800 border-gray-500 border text-white opacity-70 px-2 mb-1">
+            {{imageIndex + 1}} / {{gallery.length}}
+          </div>
         </div>
 
         <!-- Image -->
