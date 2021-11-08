@@ -1,17 +1,19 @@
 <template>
   <!-- Nav -->
   <section>
-    <nav class="bg-gray-600 py-4 grid grid-cols-12">
+    <nav class="bg-gray-600 py-4 grid grid-cols-12 gap-2">
 
       <!-- Hamburger menu icon -->
-      <div class="flex justify-center mx-auto">
+      <!-- <div class="flex justify-center mx-auto">
           <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24" height="24" viewBox="0 0 24 24" style=" fill:#000000;" class="my-auto ml-2">
         <path d="M 2 5 L 2 7 L 22 7 L 22 5 L 2 5 z M 2 11 L 2 13 L 22 13 L 22 11 L 2 11 z M 2 17 L 2 19 L 22 19 L 22 17 L 2 17 z"></path>
       </svg>
-      </div>
+      </div> -->
 
-      <!-- Search -->
-      <input v-model="urlTail" v-on:keyup.enter="updateUrl" type="text" class="px-2 py-2 sm:py-4 col-start-3 sm:col-start-2 col-span-8 sm:col-span-10 opacity-50 focus:opacity-100 rounded-md shadow-lg" placeholder="r/">
+      <!-- Subreddit Search -->
+      <input v-model="subreddit" v-on:keyup.enter="updateUrlSubreddit" type="text" class="px-2 py-2 sm:py-4 col-start-3 sm:col-start-2 col-span-4 sm:col-span-5 opacity-50 focus:opacity-100 rounded-md shadow-lg" placeholder="r/">
+      <!-- User Search -->
+      <input v-model="username" v-on:keyup.enter="updateUrlUsername" type="text" class="px-2 py-2 sm:py-4 col-span-4 sm:col-span-5 opacity-50 focus:opacity-100 rounded-md shadow-lg" placeholder="user/">
     </nav>
   </section>
 
@@ -45,6 +47,8 @@ export default {
       load: [],
       url: 'https://www.reddit.com/',
       urlTail: 'r/wallpapers',
+      subreddit: '',
+      username: '',
       limit: 50,
 
     }
@@ -98,8 +102,28 @@ export default {
       return this.buildUrl(false) + '?after=t3_'
     },
 
-    updateUrl() {
-      this.urlTail.match(/(user|r)\/.*/) ? this.fetchData() : null
+    updateUrlSubreddit() {
+      try {
+        this.urlTail = 'r/' + this.subreddit;
+        this.username = '';
+        this.fetchData();
+      } catch (error) {
+        console.log('Error finding the subreddit')
+        console.log(error)
+      }
+      // this.urlTail.match(/(user|r)\/.*/) ? this.fetchData() : null
+    },
+
+    updateUrlUsername() {
+      try {
+        this.urlTail = 'user/' + this.username;
+        this.subreddit = '';
+        this.fetchData();
+      } catch (error) {
+        console.log('Error finding the user')
+        console.log(error)
+      }
+      // this.urlTail.match(/(user|r)\/.*/) ? this.fetchData() : null
     },
 
     // Helper for navigation between users/subreddits through clicked links
