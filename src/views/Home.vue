@@ -1,7 +1,7 @@
 <template>
   <!-- Nav -->
   <section>
-    <nav class="bg-gray-600 py-4 grid grid-cols-12 gap-2">
+    <nav class="bg-gray-600 py-3 grid grid-cols-12 gap-2">
 
       <!-- Hamburger menu icon -->
       <!-- <div class="flex justify-center mx-auto">
@@ -11,9 +11,11 @@
       </div> -->
 
       <!-- Subreddit Search -->
-      <input v-model="subreddit" v-on:keyup.enter="updateUrlSubreddit" type="text" class="px-2 py-2 sm:py-4 col-start-3 sm:col-start-2 col-span-4 sm:col-span-5 opacity-50 focus:opacity-100 rounded-md shadow-lg" placeholder="r/">
+      <input v-model="subreddit" v-on:keyup.enter="updateUrlSubreddit" type="text" class="px-2 py-1 sm:py-2 col-start-3 sm:col-start-2 col-span-4 sm:col-span-5 opacity-50 focus:opacity-100 rounded-md shadow-lg" placeholder="r/">
       <!-- User Search -->
-      <input v-model="username" v-on:keyup.enter="updateUrlUsername" type="text" class="px-2 py-2 sm:py-4 col-span-4 sm:col-span-5 opacity-50 focus:opacity-100 rounded-md shadow-lg" placeholder="user/">
+      <input v-model="username" v-on:keyup.enter="updateUrlUsername" type="text" class="px-2 py-1 sm:py-2 col-span-4 sm:col-span-5 opacity-50 focus:opacity-100 rounded-md shadow-lg" placeholder="user/">
+      <!-- Current Subreddit/User -->
+      <p class="self-center col-span-12 text-lg text-gray-300 underline -my-1">{{this.urlTail}}</p>
     </nav>
   </section>
 
