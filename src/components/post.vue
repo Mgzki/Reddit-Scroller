@@ -78,8 +78,8 @@
 
       <!-- Author in Subreddit -->
       <p class="text-sm align-center bg-gray-200 h-12 rounded-b-lg pt-1">
-        <Link @click="fetchFromLink(true)">{{author}}</Link>
-        in <Link @click="fetchFromLink(false)">r/{{subreddit}}</Link>
+        <Link @click="fetchFromLink(true)" class="cursor-pointer">{{author}}</Link>
+        in <Link @click="fetchFromLink(false)" class="cursor-pointer">r/{{subreddit}}</Link>
       </p>
   </div>
 </template>
