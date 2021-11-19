@@ -156,10 +156,14 @@ export default {
     async onScroll() {
       var postsHeading = this.$refs['posts']
       if (postsHeading) {
-        var scrolledDistance = postsHeading.scrollTop;
-        var scrollMax = postsHeading.scrollHeight;
+        var scrollTop = postsHeading.scrollTop; //pixels scrolled
+        var scrollHeight = postsHeading.scrollHeight; //maximum scrollable pixels
+        var windowHeight = window.innerHeight * .9 ; //reduced by 10% to account for nav bar height
+        var scrollPosition = scrollHeight - windowHeight; 
+        var percentScrolled = scrollTop / scrollPosition;
+
         
-        if ((scrollMax - scrolledDistance) < 0.18 * scrollMax  & !this.loading) {
+        if (percentScrolled > 0.95  & !this.loading) {
           this.loading = true
           this.loadMore();
           await this.delayLoad();
