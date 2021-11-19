@@ -1,7 +1,7 @@
 <template>
   <!-- Nav -->
   <section>
-    <nav class="bg-gray-600 py-3 grid grid-cols-12 gap-2">
+    <nav class="bg-gray-600 pt-2 pb-1 grid grid-cols-12 gap-2" style="height: 10vh">
 
       <!-- Hamburger menu icon -->
       <!-- <div class="flex justify-center mx-auto">
@@ -15,26 +15,24 @@
       <!-- User Search -->
       <input v-model="username" v-on:keyup.enter="updateUrlUsername" type="text" class="px-2 py-1 sm:py-2 col-span-4 sm:col-span-5 opacity-50 focus:opacity-100 rounded-md shadow-lg" placeholder="user/">
       <!-- Current Subreddit/User -->
-      <p class="self-center col-span-12 text-lg text-gray-300 underline -my-1">{{this.urlTail}}</p>
+      <p class="self-center col-span-12 text-md sm:text-lg text-gray-300 underline -my-1">{{this.urlTail}}</p>
     </nav>
   </section>
 
   <!-- Body -->
-  <div class="bg-gray-400 overflow-y-scroll" style="height: 91vh">
-    <div class="flex max-w-screen-2xl justify-center mx-auto px-2 ">
-        <div v-if="posts.length > 0" class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-9 lg:grid-cols-12 xl:grid-cols-10 grid-flow-row gap-2 pt-6 ">
+  <div class="bg-gray-400 overflow-y-scroll " style="height: 90vh" @scroll="onScroll" ref="posts">
+    <div class="flex max-w-screen-2xl justify-center mx-auto px-2">
+        <div v-if="posts.length > 0" class="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-9 lg:grid-cols-12 xl:grid-cols-10 grid-flow-row gap-2 pt-4" >
           <template v-for="post in posts" :key="post.data.id">
             <Post :post="post.data" @fetchFromLink="fetchFromLink($event)"/>
           </template>
+          <p v-show="isEnd" class="flex">No more posts</p>
         </div>
         <div v-else class="mt-20 bg-gray-100 rounded-xl shadow-lg max-w-2xl ">
             <p class="py-4 px-12">Sorry, no posts here!</p>
         </div>
       </div>
   </div>
-  <footer>
-    <button @click="loadMore"> More </button>
-  </footer>
 </template>
 
 <script>
@@ -52,6 +50,8 @@ export default {
       subreddit: '',
       username: '',
       limit: 50,
+      loading: false,
+      isEnd: false,
 
     }
   },
@@ -71,6 +71,9 @@ export default {
           }
           return children
         });
+        if (this.posts.length < this.limit) {
+          this.isEnd = true
+        }
       } catch (error) {
         console.log(error);
       }
@@ -91,6 +94,7 @@ export default {
         }
       } catch (error) {
         console.log(error);
+        this.isEnd = true;
       }
     },
 
@@ -133,16 +137,57 @@ export default {
       event.isAuthor ? this.urlTail = 'user/' + event.url : this.urlTail = 'r/' + event.url
       this.fetchData();
     },
+
+    // Helper to limit reloads to 1 every few seconds
+    async delayLoad() {
+      var delay = 3000; // 5 seconds
+      return await new Promise((resolve) => {
+        var timer = setInterval(() => {
+          delay -= 1000;
+          if (delay < 1000) {
+            clearInterval(timer)
+            this.loading = false;
+            resolve("resolved")
+          }
+        }, 1000);
+      })
+    },
+
+    async onScroll() {
+      var postsHeading = this.$refs['posts']
+      if (postsHeading) {
+        var scrolledDistance = postsHeading.scrollTop;
+        var scrollMax = postsHeading.scrollHeight;
+        
+        if ((scrollMax - scrolledDistance) < 0.18 * scrollMax  & !this.loading) {
+          this.loading = true
+          this.loadMore();
+          await this.delayLoad();
+        }
+      }
+    }
   },
+
   created() {
     this.fetchData();
   },
+
+  mounted() {
+    this.$nextTick(function() {
+      window.addEventListener('scroll', this.onScroll);
+      this.onScroll(); // for initial loading on page
+    });
+  },
+
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.onScroll);
+  }
 }
 </script>
 
 <style>
   ::-webkit-scrollbar {
-    width: 3px;
+    width: 2px;
   }
   /* Track */
   ::-webkit-scrollbar-track {
