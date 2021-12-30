@@ -361,9 +361,10 @@ export default {
         let realId = ids[id]
         // Push to gallery if image was not deleted
         try {
-          images.push(this.post.media_metadata[realId].p[this.numGalleryImageResolutions - 1].u.replace(/amp;/g,''))
+          images.push(this.post.media_metadata[realId].p[1].u.replace(/amp;/g,''))
         } catch (error) {
           console.log(this.post.title)
+          console.log(this.post.mediaLink)
           console.log(error)
         }
         
